@@ -1,0 +1,81 @@
+# CampusConnect - Project Documentation
+
+Welcome to the CampusConnect development team! This document serves as a guide to the project's architecture, tech stack, and core features.
+
+## 1. Project Overview
+
+**CampusConnect** is a mobile-first dating and social connection app exclusively for college students. The goal is to create a safe and fun environment where students from the same campus can meet, match, and interact in various ways—from classic swiping to sending anonymous compliments and joining local events.
+
+---
+
+## 2. Tech Stack
+
+- **Framework:** **Next.js 14+** using the **App Router**. We leverage React Server Components (RSC) for performance.
+- **Language:** **TypeScript**.
+- **Backend & Database:** **Firebase**
+  - **Authentication:** Manages user sign-up and login (email/password).
+  - **Firestore:** Our NoSQL database for all dynamic data.
+  - **Storage:** Hosts user-uploaded media (profile photos, etc.).
+- **UI & Styling:**
+  - **React** with Functional Components and Hooks.
+  - **ShadCN UI:** Our component library, located in `src/components/ui`.
+  - **Tailwind CSS:** For all styling. Theme configured in `src/app/globals.css`.
+- **Forms:** **React Hook Form** with **Zod** for type-safe validation.
+- **AI Layer:** **Genkit** is configured and ready for future AI features (`src/ai/`).
+
+---
+
+## 3. Project Structure & Key Files
+
+-   `src/app/`: Contains all application routes, following the App Router convention.
+    -   `/` (public landing page)
+    -   `/login`, `/signup` (authentication routes)
+    -   `/welcome` (new user onboarding flow)
+    -   `/app` (main authenticated section, protected by `app/layout.tsx`)
+-   `src/components/`: Reusable React components.
+    -   `ui/`: Base components from ShadCN.
+    -   `main-layout.tsx`, `bottom-nav.tsx`: The primary app shell for authenticated users.
+    -   `swipe-card-stack.tsx`, `swipe-card.tsx`: The core swiping interface components.
+-   `src/hooks/`: Custom React hooks.
+    -   `use-auth.tsx`: The single source of truth for the current user's authentication state.
+-   `src/lib/`: Core libraries and utilities.
+    -   `firebase.ts`: Handles all Firebase configuration and initialization.
+    -   `utils.ts`: General utility functions (like `cn` for classnames).
+-   `src/types/index.ts`: Contains all TypeScript type definitions for our Firestore data models (`UserProfile`, `Match`, `Message`, `AppEvent`).
+-   `src/ai/`: Contains Genkit configuration and flows for future AI features.
+
+---
+
+## 4. Core Features & Technical Implementation
+
+#### **Onboarding (`/welcome`)**
+- A multi-step form that captures new user details (`name`, `age`, `college`, etc.).
+- Features a profile picture uploader that demonstrates our Firebase Storage integration.
+- **Technical Highlight:** The submission process is optimistic. It saves profile data to Firestore with a placeholder, redirects the user to the app immediately, and then updates the photo URL in the background after the upload completes. This provides a fast, non-blocking user experience.
+
+#### **Swiping & Matching (`/app/home`)**
+- Fetches a list of potential users from the `users` collection in Firestore, filtering out users who have already been swiped on.
+- The `onSwipe` handler in `home/page.tsx` performs a write to the current user's document, adding the swiped user's UID to either the `swipedLeft` or `swipedRight` array.
+- **Match Logic:** After a right-swipe, the system checks the swiped user's document to see if they have already right-swiped the current user. If so, a new document is created in the `matches` collection.
+
+#### **Real-time Chat (`/app/chat/[id]`)**
+- Uses a dynamic route where `[id]` is the document ID from the `matches` collection.
+- **Technical Highlight:** It uses Firestore's `onSnapshot` listener to subscribe to the `messages` sub-collection. This provides real-time updates, pushing new messages to the UI instantly without requiring a page reload.
+
+#### **Profile & Media Management (`/app/profile`)**
+- Allows users to edit their profile information, which updates their document in the `users` collection.
+- Users can upload multiple photos, which are stored in Firebase Storage and their URLs are added to the `photoURLs` (for public photos) or `spicyPhotoURLs` (for private photos) arrays in their user document.
+
+---
+
+## 5. Getting Started & Future Development
+
+To run the project, ensure you have a `.env.local` file with the correct Firebase configuration keys.
+
+**Areas for Future Development:**
+- **Implement Genkit AI Features:** Use the existing Genkit setup to add AI-powered icebreakers in the chat or to generate user bio suggestions.
+- **Refine Events Page:** Add functionality for users to see who else is attending an event.
+- **Compliments System:** Build out the backend logic for sending and revealing anonymous compliments.
+- **Improve State Management:** For more complex global state, consider introducing a more robust solution like Zustand or Jotai.
+
+We're excited to see what you build!
