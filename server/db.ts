@@ -1,27 +1,44 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
-
 if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Please set it in your .env file or environment variables."
-  );
+  console.warn('⚠️  DATABASE_URL not found. Using placeholder connection.');
+  process.env.DATABASE_URL = 'postgresql://placeholder:placeholder@localhost:5432/placeholder';
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+// Create the connection
+const connectionString = process.env.DATABASE_URL;
+const client = postgres(connectionString, {
+  prepare: false,
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 10,
+});
+
+export const db = drizzle(client, { schema });
 
 // Test database connection
 export async function testConnection() {
   try {
-    const result = await pool.query('SELECT NOW()');
-    console.log('✅ Database connected successfully');
+    const result = await client`SELECT NOW()`;
+    console.log('✅ Supabase database connected successfully');
     return true;
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    console.error('❌ Supabase database connection failed:', error);
     return false;
   }
 }
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Closing database connection...');
+  await client.end();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Closing database connection...');
+  await client.end();
+  process.exit(0);
+});

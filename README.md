@@ -15,7 +15,7 @@ A mobile-first dating and social connection app exclusively for college students
 
 - **Frontend**: React 18 + TypeScript + Vite
 - **Backend**: Express.js + TypeScript
-- **Database**: PostgreSQL with Drizzle ORM
+- **Database**: Supabase (PostgreSQL) with Drizzle ORM
 - **Real-time**: WebSocket for live chat
 - **UI**: Tailwind CSS + shadcn/ui components
 - **Authentication**: Session-based with bcrypt
@@ -25,7 +25,7 @@ A mobile-first dating and social connection app exclusively for college students
 ### Prerequisites
 
 - Node.js 18+
-- PostgreSQL database
+- Supabase account and project
 - npm or yarn
 
 ### Installation
@@ -41,19 +41,27 @@ cd campusconnect
 npm install
 ```
 
-3. Set up environment variables:
+3. Set up Supabase:
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Go to Settings > Database and copy your connection string
+   - Go to Settings > API and copy your project URL and keys
+
+4. Set up environment variables:
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your database URL and other configuration:
+Edit `.env` with your Supabase configuration:
 ```env
-DATABASE_URL=postgresql://username:password@localhost:5432/campusconnect
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres
+SUPABASE_URL=https://[YOUR-PROJECT-REF].supabase.co
+SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 SESSION_SECRET=your-super-secret-session-key
 PORT=5000
 ```
 
-4. Set up the database:
+5. Set up the database schema:
 ```bash
 # Run migrations
 npm run db:migrate
@@ -62,12 +70,40 @@ npm run db:migrate
 npm run db:push
 ```
 
-5. Start the development server:
+6. Start the development server:
 ```bash
 npm run dev
 ```
 
 The app will be available at `http://localhost:5000`
+
+## Supabase Setup Guide
+
+1. **Create a Supabase Project**:
+   - Go to [supabase.com](https://supabase.com) and create an account
+   - Create a new project
+   - Wait for the project to be set up (usually takes 2-3 minutes)
+
+2. **Get Database Connection**:
+   - Go to Settings > Database
+   - Copy the connection string under "Connection string"
+   - Replace `[YOUR-PASSWORD]` with your database password
+
+3. **Get API Keys**:
+   - Go to Settings > API
+   - Copy the Project URL
+   - Copy the `anon` `public` key
+   - Copy the `service_role` `secret` key (keep this secure!)
+
+4. **Run Database Migration**:
+   ```bash
+   npm run db:migrate
+   ```
+
+5. **Optional: Use Supabase Dashboard**:
+   - You can view and manage your data directly in the Supabase dashboard
+   - Go to Table Editor to see your tables
+   - Use SQL Editor to run custom queries
 
 ## Deployment
 
@@ -102,7 +138,10 @@ Make sure to set your environment variables in the Vercel dashboard.
 
 Required environment variables for production:
 
-- `DATABASE_URL`: PostgreSQL connection string
+- `DATABASE_URL`: Supabase PostgreSQL connection string
+- `SUPABASE_URL`: Your Supabase project URL
+- `SUPABASE_ANON_KEY`: Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY`: Supabase service role key (keep secure!)
 - `SESSION_SECRET`: Secret key for session encryption
 - `NODE_ENV`: Set to "production"
 - `PORT`: Port number (default: 5000)
@@ -114,7 +153,7 @@ Optional:
 
 ## Database Schema
 
-The app uses PostgreSQL with the following main tables:
+The app uses Supabase (PostgreSQL) with the following main tables:
 
 - **users**: User profiles and authentication
 - **matches**: Bidirectional relationships between users
