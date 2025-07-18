@@ -416,3 +416,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   return httpServer;
 }
+
+// Health check endpoint for deployment platforms
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});

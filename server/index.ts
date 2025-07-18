@@ -1,10 +1,19 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { testConnection } from "./db";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -37,6 +46,13 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Test database connection before starting server
+  const dbConnected = await testConnection();
+  if (!dbConnected) {
+    console.error('Failed to connect to database. Exiting...');
+    process.exit(1);
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -67,5 +83,6 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   });
 })();

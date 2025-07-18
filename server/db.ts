@@ -6,14 +6,22 @@ import * as schema from "@shared/schema";
 neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
-  console.warn(
-    "DATABASE_URL is not set. Please set it in your .env file or environment variables.",
+  throw new Error(
+    "DATABASE_URL must be set. Please set it in your .env file or environment variables."
   );
-  console.warn(
-    "Using a placeholder connection string for now. The app may not work properly without a real database.",
-  );
-  process.env.DATABASE_URL = "postgresql://placeholder:placeholder@localhost:5432/placeholder";
 }
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
+
+// Test database connection
+export async function testConnection() {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    console.log('✅ Database connected successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error);
+    return false;
+  }
+}

@@ -1,7 +1,7 @@
 import { users, matches, messages, events, compliments, type User, type InsertUser, type Match, type InsertMatch, type Message, type InsertMessage, type Event, type InsertEvent, type Compliment, type InsertCompliment } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, not, inArray, desc, asc } from "drizzle-orm";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export interface IStorage {
   // User operations
